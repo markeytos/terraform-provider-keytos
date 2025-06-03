@@ -1,3 +1,3 @@
-provider "scaffolding" {
-  # example configuration here
+provider "keytos" {
+  ezca_url = "portal.ezca.io"
 }

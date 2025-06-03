@@ -1,0 +1,37 @@
+# terraform-provider-keytos
+
+This project, "terraform-provider-keytos", is a derivative work of the original "Terraform Provider Scaffolding" project.
+
+## Original Project Information
+
+*   **Original Project Name:** Terraform Provider Scaffolding
+*   **Original Repository:** [Link to Original Repository] (https://github.com/hashicorp/terraform-provider-scaffolding-framework)
+*   **Original License:** Mozilla Public License Version 2.0 (MPL-2.0)
+*   **Original Copyright:** Copyright (c) 2021 HashiCorp, Inc.
+
+## Licensing Information for This Fork
+
+The original source code in this repository, which was derived from "Terraform Provider Scaffolding", remains licensed under the **Mozilla Public License Version 2.0 (MPL-2.0)**.
+
+A copy of the MPL-2.0 can be found in the `LICENSE` file in this repository.
+
+### Modifications
+
+Files modified from the original "Original Project Name" source code include additional copyright notices to indicate the contribution of this provider's authors.
+
+### New Files
+
+Any entirely new files added to this fork (that are not direct derivatives of the original MPL-licensed code) are also licensed under the **Mozilla Public License Version 2.0 (MPL-2.0)**, unless explicitly stated otherwise within the file's header.
+
+For any specific files that might be under a different, but compatible, license (e.g., for bundled dependencies or utility scripts), their respective licenses will be clearly stated within those files or in a dedicated `THIRD-PARTY-LICENSES.md` file.
+
+## Changes Introduced in This Fork
+
+This fork introduces the following significant changes and additions:
+
+*   **Keytos Provider:** Provider for Keytos services.
+*   **EZCA Data Sources and Resources:** Methods to manage EZCA with terraform.
+
+---
+
+For further details regarding licensing or contributions, please refer to the [`LICENSE`](./LICENSE) file and the project's [`README.md`](./README.md).
