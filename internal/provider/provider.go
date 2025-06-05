@@ -6,14 +6,22 @@ package provider
 
 import (
 	"context"
-	"net/http"
+	"fmt"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/markeytos/ezca-go"
 )
+
+const defaultEzcaURL = "portal.ezca.io"
+
+type KeytosData struct {
+	EZCAClient *ezca.Client
+}
 
 // KeytosProvider defines the provider implementation.
 type KeytosProvider struct {
@@ -48,18 +56,31 @@ func (p *KeytosProvider) Configure(ctx context.Context, req provider.ConfigureRe
 	var data KeytosProviderModel
 
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// Configuration values are now available.
-	// if data.Endpoint.IsNull() { /* ... */ }
+	ezcaURL := data.EZCAUrl.ValueString()
+	if ezcaURL == "" {
+		ezcaURL = defaultEzcaURL
+	}
 
-	// Example client configuration for data sources and resources
-	client := http.DefaultClient
-	resp.DataSourceData = client
-	resp.ResourceData = client
+	cred, err := azidentity.NewDefaultAzureCredential(nil)
+	if err != nil {
+		resp.Diagnostics.AddError("Could not get azure credential", fmt.Sprintf("Could not get Azure credential: %v", err))
+		return
+	}
+	c, err := ezca.NewClient(ezcaURL, cred)
+	if err != nil {
+		resp.Diagnostics.AddError("Could not initialize EZCA client", fmt.Sprintf("EZCA Client initialization error: %v", err))
+		return
+	}
+
+	d := &KeytosData{
+		EZCAClient: c,
+	}
+	resp.DataSourceData = d
+	resp.ResourceData = d
 }
 
 func (p *KeytosProvider) Resources(ctx context.Context) []func() resource.Resource {

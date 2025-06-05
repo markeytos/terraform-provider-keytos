@@ -7,13 +7,13 @@ package provider
 import (
 	"context"
 	"fmt"
-	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/markeytos/ezca-go"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -25,13 +25,26 @@ func NewKeytosEzcaSslLeafCertResource() resource.Resource {
 
 // KeytosEzcaSslLeafCertResource defines the resource implementation.
 type KeytosEzcaSslLeafCertResource struct {
-	client *http.Client
+	client *ezca.Client
 }
 
 // KeytosEzcaSslLeafCertResourceModel describes the resource data model.
 type KeytosEzcaSslLeafCertResourceModel struct {
-	AuthorityId types.String `tfsdk:"authority_id"`
-	TemplateId  types.String `tfsdk:"template_id"`
+	AuthorityId                       types.String `tfsdk:"authority_id"`
+	TemplateId                        types.String `tfsdk:"template_id"`
+	CertRequestPEM                    types.String `tfsdk:"cert_request_pem"`
+	ValidityPeriod                    types.String `tfsdk:"validity_period"`
+	KeyUsages                         types.String `tfsdk:"key_usages"`
+	ExtendedKeyUsages                 types.List   `tfsdk:"extended_key_usages"`
+	OverwriteSubjectName              types.Object `tfsdk:"overwrite_subject_name"`
+	OverwriteSubjectNameStr           types.String `tfsdk:"overwrite_subject_name_str"`
+	AdditionalSubjectAlternativeNames types.Object `tfsdk:"additional_subject_alternative_names"`
+	EarlyRenewalPeriod                types.String `tfsdk:"early_renewal_period"`
+	CertPEM                           types.String `tfsdk:"cert_pem"`
+	CertSerialNumber                  types.String `tfsdk:"cert_serial_number"`
+	ReadyForRenewal                   types.Bool   `tfsdk:"ready_for_renewal"`
+	ValidityNotBefore                 types.String `tfsdk:"validity_not_before"`
+	ValidityNotAfter                  types.String `tfsdk:"validity_not_after"`
 }
 
 func (r *KeytosEzcaSslLeafCertResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -129,34 +142,32 @@ func (r *KeytosEzcaSslLeafCertResource) Schema(ctx context.Context, req resource
 }
 
 func (r *KeytosEzcaSslLeafCertResource) Configure(ctx context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
-	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
 	}
 
-	client, ok := req.ProviderData.(*http.Client)
-
+	data, ok := req.ProviderData.(*KeytosData)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *http.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+			fmt.Sprintf("Expected *KeytosData, got: %T. Please report this issue to the provider developers.", req.ProviderData),
 		)
 
 		return
 	}
 
-	r.client = client
+	r.client = data.EZCAClient
 }
 
 func (r *KeytosEzcaSslLeafCertResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data KeytosEzcaSslLeafCertResourceModel
 
-	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
+
+	// TODO: Read model: Populate it
 
 	// If applicable, this is a great opportunity to initialize any necessary
 	// provider client data and make a call using it.
@@ -170,73 +181,44 @@ func (r *KeytosEzcaSslLeafCertResource) Create(ctx context.Context, req resource
 	// save into the Terraform state.
 	// data.Id = types.StringValue("example-id")
 
-	// Write logs using the tflog package
-	// Documentation: https://terraform.io/plugin/log
 	tflog.Trace(ctx, "created a resource")
 
-	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *KeytosEzcaSslLeafCertResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	var data KeytosEzcaSslLeafCertResourceModel
 
-	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := r.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
-	//     return
-	// }
+	// TODO: Read state: Check state
 
-	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *KeytosEzcaSslLeafCertResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data KeytosEzcaSslLeafCertResourceModel
 
-	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := r.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update example, got error: %s", err))
-	//     return
-	// }
+	// TODO: Read state: Check state and view if renewable. If renewable, sign again
 
-	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *KeytosEzcaSslLeafCertResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data KeytosEzcaSslLeafCertResourceModel
 
-	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := r.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete example, got error: %s", err))
-	//     return
-	// }
+	// TODO: Read state: Initialize client and delete
 }

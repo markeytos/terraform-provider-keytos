@@ -36,8 +36,6 @@ data "keytos_ezca_ssl_authority" "example" {
 - `is_root` (Boolean) Whether the authority is a root certificate
 - `key_algorithm` (String) Key algorithms of the authority
 - `subject_name_str` (String) Subject Name of the authority as a string.
-- `validity_not_after` (String) Time prior which the certificate is valid as an RFC3339 timestamp. Expiration time stamp.
-- `validity_not_before` (String) Time after which the certificate is valid as an RFC3339 timestamp. Validity start time stamp.
 
 <a id="nestedatt--issuer_authority"></a>
 ### Nested Schema for `issuer_authority`
@@ -47,5 +45,3 @@ Optional:
 - `authority_id` (String)
 - `subject_name` (String)
 - `template_id` (String)
-- `validity_not_after` (String)
-- `validity_not_before` (String)
