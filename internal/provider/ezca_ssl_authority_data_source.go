@@ -9,7 +9,6 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
@@ -29,14 +28,17 @@ type KeytosEzcaSslAuthorityDataSource struct {
 	client *ezca.Client
 }
 
-// KeytosEzcaSslAuthorityDataSourceModel describes the data source data model.
+// KeytosEzcaSslAuthorityModel describes the data source data model.
 type KeytosEzcaSslAuthorityDataSourceModel struct {
-	AuthorityId     types.String `tfsdk:"authority_id"`
-	TemplateId      types.String `tfsdk:"template_id"`
-	KeyAlgorithm    types.String `tfsdk:"key_algorithm"`
-	SubjectName     types.String `tfsdk:"subject_name_str"`
-	IsRoot          types.Bool   `tfsdk:"is_root"`
-	IssuerAuthority types.Object `tfsdk:"issuer_authority"`
+	AuthorityID   types.String `tfsdk:"authority_id"`
+	TemplateID    types.String `tfsdk:"template_id"`
+	KeyType       types.String `tfsdk:"key_type"`
+	HashAlgorithm types.String `tfsdk:"hash_algorithm"`
+	IsPublic      types.Bool   `tfsdk:"is_public"`
+	IsRoot        types.Bool   `tfsdk:"is_root"`
+	// NOTE: set subject name and issuer authority below when uncommented
+	// SubjectName     types.String `tfsdk:"subject_name_str"`
+	// IssuerAuthority types.Object `tfsdk:"issuer_authority"`
 }
 
 func (d *KeytosEzcaSslAuthorityDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -57,28 +59,37 @@ func (d *KeytosEzcaSslAuthorityDataSource) Schema(ctx context.Context, req datas
 				Required:            true,
 			},
 
-			"key_algorithm": schema.StringAttribute{
-				MarkdownDescription: "Key algorithms of the authority",
+			"key_type": schema.StringAttribute{
+				MarkdownDescription: "Key type of the authority",
 				Computed:            true,
 			},
-			"subject_name_str": schema.StringAttribute{
-				MarkdownDescription: "Subject Name of the authority as a string.",
+			"hash_algorithm": schema.StringAttribute{
+				MarkdownDescription: "Hash algorithms of the authority",
+				Computed:            true,
+			},
+			"is_public": schema.BoolAttribute{
+				MarkdownDescription: "Whether the authority is a public certificate",
 				Computed:            true,
 			},
 			"is_root": schema.BoolAttribute{
 				MarkdownDescription: "Whether the authority is a root certificate",
 				Computed:            true,
 			},
-			"issuer_authority": schema.ObjectAttribute{
-				AttributeTypes: map[string]attr.Type{
-					"authority_id": types.StringType,
-					"template_id":  types.StringType,
-					"subject_name": types.StringType,
-				},
-				MarkdownDescription: "If authority is not root, contain information about the issuer",
-				Computed:            true,
-				Optional:            true,
-			},
+			// NOTE: uncomment when data source model uncomment these
+			// "subject_name_str": schema.StringAttribute{
+			// 	MarkdownDescription: "Subject Name of the authority as a string.",
+			// 	Computed:            true,
+			// },
+			// "issuer_authority": schema.ObjectAttribute{
+			// 	AttributeTypes: map[string]attr.Type{
+			// 		"authority_id": types.StringType,
+			// 		"template_id":  types.StringType,
+			// 		"subject_name": types.StringType,
+			// 	},
+			// 	MarkdownDescription: "If authority is not root, contain information about the issuer",
+			// 	Computed:            true,
+			// 	Optional:            true,
+			// },
 		},
 	}
 }
@@ -88,7 +99,7 @@ func (d *KeytosEzcaSslAuthorityDataSource) Configure(ctx context.Context, req da
 		return
 	}
 
-	data, ok := req.ProviderData.(*KeytosData)
+	client, ok := req.ProviderData.(*ezca.Client)
 	if !ok {
 		resp.Diagnostics.AddError(
 			"Unexpected Data Source Configure Type",
@@ -98,7 +109,7 @@ func (d *KeytosEzcaSslAuthorityDataSource) Configure(ctx context.Context, req da
 		return
 	}
 
-	d.client = data.EZCAClient
+	d.client = client
 }
 
 func (d *KeytosEzcaSslAuthorityDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
@@ -109,30 +120,35 @@ func (d *KeytosEzcaSslAuthorityDataSource) Read(ctx context.Context, req datasou
 		return
 	}
 
-	authorityId, err := uuid.Parse(data.AuthorityId.ValueString())
+	authorityId, err := uuid.Parse(data.AuthorityID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Invalid Authority ID", fmt.Sprintf("Expected a valid UUID for Authority ID, got %s: %v", authorityId, err))
-		return
 	}
-
-	templateId, err := uuid.Parse(data.TemplateId.ValueString())
+	templateId, err := uuid.Parse(data.TemplateID.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Invalid Template ID", fmt.Sprintf("Expected a valid UUID for Template ID, got %s: %v", templateId, err))
+	}
+	if resp.Diagnostics.HasError() {
 		return
 	}
 
-	authority := ezca.NewSSLAuthority(authorityId, templateId)
-	_, err = ezca.NewSSLAuthorityClient(d.client, authority)
+	c, err := ezca.NewSSLAuthorityClient(ctx, d.client, authorityId, templateId)
 	if err != nil {
 		resp.Diagnostics.AddError("Invalid SSL authority", fmt.Sprintf("Error validating SSL Authority: %v", err))
 		return
 	}
 
-	// TODO: populate the following from data
-	// KeyAlgorithm
-	// SubjectName
-	// IsRoot
-	// IssuerAuthority
+	info, err := c.Info(ctx)
+	if err != nil {
+		resp.Diagnostics.AddError("Invalid SSL authority", fmt.Sprintf("Error getting SSL Authority information: %v", err))
+		return
+	}
+
+	data.KeyType = types.StringValue(string(info.KeyType))
+	data.HashAlgorithm = types.StringValue(string(info.HashAlgorithm))
+	data.IsPublic = types.BoolValue(info.IsPublic)
+	data.IsRoot = types.BoolValue(info.IsRoot)
+	// NOTE: set subject name and issuer authority when uncommented
 
 	tflog.Trace(ctx, "read a ssl authority data source")
 

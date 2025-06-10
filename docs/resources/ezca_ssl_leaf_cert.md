@@ -38,17 +38,18 @@ resource "keytos_ezca_ssl_leaf_cert" "example" {
 
 ### Optional
 
-- `additional_subject_alternative_names` (Object) Additional subject alternative names to add to the certificate (see [below for nested schema](#nestedatt--additional_subject_alternative_names))
+- `additional_subject_alternative_names` (Attributes) Additional subject alternative names to add to the certificate (see [below for nested schema](#nestedatt--additional_subject_alternative_names))
 - `early_renewal_period` (String) Resource will consider the leaf certificate ready for renewal early by the duration defined here. This can be used to update the resource-managed certificate when close to expiring when it is applied during the early renewal period.
-- `extended_key_usages` (List of String) List of extended key usages
-- `key_usages` (List of String) List of key usages
-- `overwrite_subject_name` (Object) Set to override the Subject Name of the certificate structurally. Can only define one of `overwrite_subject_name` or `overwrite_subject_name_str`. (see [below for nested schema](#nestedatt--overwrite_subject_name))
+- `extended_key_usages` (List of String) List of extended key usages. Defaults to server authentication and client authentication.
+- `key_usages` (List of String) List of key usages. Defaults to key encipherment and digital signature.
+- `overwrite_subject_name` (Attributes) Set to override the Subject Name of the certificate structurally. Can only define one of `overwrite_subject_name` or `overwrite_subject_name_str`. (see [below for nested schema](#nestedatt--overwrite_subject_name))
 - `overwrite_subject_name_str` (String) Set to override the Subject Name of the certificate as a string. Can only define one of `overwrite_subject_name` or `overwrite_subject_name_str`.
 
 ### Read-Only
 
 - `cert_pem` (String) Certificate data in PEM format.
 - `cert_serial_number` (String) Certificate serial number. The unique identifier for this resource.
+- `cert_thumbprint_hex` (String) Certificate thumbprint. This is a SHA-1 sum of the raw certificate contents.
 - `ready_for_renewal` (Boolean) True when the certificate is expired or when in the early renewal period.
 - `validity_not_after` (String) Time prior which the certificate is valid as an RFC3339 timestamp. Expiration time stamp.
 - `validity_not_before` (String) Time after which the certificate is valid as an RFC3339 timestamp. Validity start time stamp.
