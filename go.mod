@@ -3,7 +3,7 @@ module github.com/markeytos/terraform-provider-keytos
 go 1.24.3
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.10.0
+	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.10.1
 	github.com/google/uuid v1.6.0
 	github.com/hashicorp/terraform-plugin-framework v1.15.0
 	github.com/hashicorp/terraform-plugin-go v0.28.0
