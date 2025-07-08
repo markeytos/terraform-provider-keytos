@@ -12,8 +12,48 @@ description: |-
 ## Example Usage
 
 ```terraform
+# This example showcases how a certificate can be created using
+# the hashicorp tls provider
+# https://registry.terraform.io/providers/hashicorp/tls/latest
+#
+# Make sure to go over the detailed documentation and descriptions
+# for each data source and resource to understand its parameters
+# and intended behavior.
+
+provider "tls" {
+}
+
 provider "keytos" {
-  ezca_url = "portal.ezca.io"
+  ezca_url = var.ezca_url
+}
+
+data "keytos_ezca_ssl_authority" "example" {
+  authority_id = var.authority_id
+  template_id  = var.template_id
+}
+
+resource "tls_private_key" "example" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+resource "tls_cert_request" "example" {
+  private_key_pem = tls_private_key.example.private_key_pem
+
+  subject {
+    common_name  = "example.com"
+    organization = "Example Inc"
+  }
+}
+
+resource "keytos_ezca_ssl_leaf_cert" "example" {
+  authority_id     = data.keytos_ezca_ssl_authority.example.authority_id
+  template_id      = data.keytos_ezca_ssl_authority.example.template_id
+  cert_request_pem = tls_cert_request.example.cert_request_pem
+  validity_period  = "72h"
+  additional_subject_alternative_names = {
+    dns_names = ["example.com"]
+  }
 }
 ```
 
