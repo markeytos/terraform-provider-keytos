@@ -19,10 +19,6 @@ import (
 
 const defaultEzcaURL = "portal.ezca.io"
 
-type KeytosData struct {
-	EZCAClient *ezca.Client
-}
-
 // KeytosProvider defines the provider implementation.
 type KeytosProvider struct {
 	// version is set to the provider version on release, "dev" when the
@@ -46,7 +42,7 @@ func (p *KeytosProvider) Schema(ctx context.Context, req provider.SchemaRequest,
 		Attributes: map[string]schema.Attribute{
 			"ezca_url": schema.StringAttribute{
 				MarkdownDescription: "EZCA instance URL",
-				Required:            true,
+				Optional:            true,
 			},
 		},
 	}
@@ -76,11 +72,8 @@ func (p *KeytosProvider) Configure(ctx context.Context, req provider.ConfigureRe
 		return
 	}
 
-	d := &KeytosData{
-		EZCAClient: c,
-	}
-	resp.DataSourceData = d
-	resp.ResourceData = d
+	resp.DataSourceData = c
+	resp.ResourceData = c
 }
 
 func (p *KeytosProvider) Resources(ctx context.Context) []func() resource.Resource {

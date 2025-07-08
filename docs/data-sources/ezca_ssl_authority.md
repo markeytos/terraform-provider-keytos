@@ -27,21 +27,9 @@ data "keytos_ezca_ssl_authority" "example" {
 - `authority_id` (String) EZCA SSL authority identifier
 - `template_id` (String) EZCA authority SSL template identifier
 
-### Optional
-
-- `issuer_authority` (Object) If authority is not root, contain information about the issuer (see [below for nested schema](#nestedatt--issuer_authority))
-
 ### Read-Only
 
+- `hash_algorithm` (String) Hash algorithms of the authority
+- `is_public` (Boolean) Whether the authority is a public certificate
 - `is_root` (Boolean) Whether the authority is a root certificate
-- `key_algorithm` (String) Key algorithms of the authority
-- `subject_name_str` (String) Subject Name of the authority as a string.
-
-<a id="nestedatt--issuer_authority"></a>
-### Nested Schema for `issuer_authority`
-
-Optional:
-
-- `authority_id` (String)
-- `subject_name` (String)
-- `template_id` (String)
+- `key_type` (String) Key type of the authority

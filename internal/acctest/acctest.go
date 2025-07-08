@@ -1,25 +1,27 @@
 // Copyright (c) HashiCorp, Inc.
-// Copyright (c) 2025 Keytos
 // SPDX-License-Identifier: MPL-2.0
 
-package provider
+package acctest
 
 import (
 	"testing"
 
+	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
 )
 
+func PreCheck(t *testing.T) {
+	t.Helper()
+}
+
 // testAccProtoV6ProviderFactories is used to instantiate a provider during acceptance testing.
 // The factory function is called for each Terraform CLI command to create a provider
 // server that the CLI can connect to and interact with.
-var testAccProtoV6ProviderFactories = map[string]func() (tfprotov6.ProviderServer, error){
-	"keytos": providerserver.NewProtocol6WithError(New("test")()),
-}
-
-func testAccPreCheck(t *testing.T) {
-	// You can add code here to run prior to any test case execution, for example assertions
-	// about the appropriate environment variables being set are common to see in a pre-check
-	// function.
+func ProtoV6ProviderFactories(pfs map[string]func() provider.Provider) map[string]func() (tfprotov6.ProviderServer, error) {
+	f := make(map[string]func() (tfprotov6.ProviderServer, error), len(pfs))
+	for k, pf := range pfs {
+		f[k] = providerserver.NewProtocol6WithError(pf())
+	}
+	return f
 }

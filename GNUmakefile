@@ -1,4 +1,4 @@
-default: fmt lint install generate
+default: fmt vet mod-tidy lint install generate
 
 build:
 	go build -v ./...
@@ -13,7 +13,13 @@ generate:
 	cd tools; go generate ./...
 
 fmt:
-	gofmt -s -w -e .
+	go fmt ./...
+
+vet:
+	go vet ./...
+
+mod-tidy:
+	go mod tidy
 
 test:
 	go test -v -cover -timeout=120s -parallel=10 ./...
@@ -21,4 +27,4 @@ test:
 testacc:
 	TF_ACC=1 go test -v -cover -timeout 120m ./...
 
-.PHONY: fmt lint test testacc build install generate
+.PHONY: fmt vet mod-tidy lint test testacc build install generate
