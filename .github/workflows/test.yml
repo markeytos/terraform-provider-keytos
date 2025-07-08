@@ -61,6 +61,9 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: testacc
+    permissions:
+      id-token: write
+      contents: read
     timeout-minutes: 15
     strategy:
       fail-fast: false
